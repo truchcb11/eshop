@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm kiếm Sản phẩm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .search-form {
+            margin-bottom: 20px;
+        }
+        .search-form input {
+            margin: 5px;
+            padding: 8px;
+            width: 300px;
+        }
+        .search-form button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<h1>Tìm kiếm Sản phẩm</h1>
+
+<!-- Tìm kiếm cơ bản theo tên -->
+<div class="search-form">
+    <h2>Tìm kiếm sản phẩm theo tên</h2>
+    <form id="searchByNameForm">
+        <input type="text" id="productName" placeholder="Nhập tên sản phẩm">
+        <button type="submit">Tìm kiếm</button>
+    </form>
+</div>
+
+<!-- Tìm kiếm nâng cao -->
+<div class="search-form">
+    <h2>Tìm kiếm nâng cao</h2>
+    <form id="advancedSearchForm">
+        <input type="text" id="advProductName" placeholder="Tên">
+        <input type="text" id="advDescription" placeholder="Mô tả">
+        <input type="number" id="minPrice" placeholder="Giá tối thiểu" step="0.01">
+        <input type="number" id="maxPrice" placeholder="Giá tối đa" step="0.01">
+        <input type="number" id="categoryId" placeholder="ID danh mục">
+        <input type="number" id="brandId" placeholder="ID thương hiệu">
+        <button type="submit">Tìm kiếm</button>
+    </form>
+</div>
+
+<!-- Kết quả tìm kiếm -->
+<h2>Kết quả tìm kiếm</h2>
+<div id="searchResults"></div>
+
+<script>
+    const baseUrl = 'http://localhost:8080/api/products'; // Điều chỉnh URL cơ sở theo thiết lập của bạn
+
+    // Hàm để hiển thị kết quả tìm kiếm
+    function renderResults(products) {
+        const resultsDiv = document.getElementById('searchResults');
+        resultsDiv.innerHTML = ''; // Xóa kết quả trước đó
+
+        if (products.length === 0) {
+            resultsDiv.innerHTML = '<p>Không tìm thấy sản phẩm nào.</p>';
+            return;
+        }
+
+        products.forEach(product => {
+            const productDiv = document.createElement('div');
+            productDiv.innerHTML = `
+                <h3>${product.name}</h3>
+                <p>${product.description}</p>
+                <p>Giá: $${product.price}</p>
+                <p>ID danh mục: ${product.categoryId}</p>
+                <p>ID thương hiệu: ${product.brandId}</p>
+                <hr>
+            `;
+            resultsDiv.appendChild(productDiv);
+        });
+    }
+
+    // Tìm kiếm cơ bản theo tên
+    document.getElementById('searchByNameForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const productName = document.getElementById('productName').value;
+        fetch(`${baseUrl}/searchByNameContaining/${productName}`)
+            .then(response => response.json())
+            .then(data => renderResults(data));
+    });
+
+    // Tìm kiếm nâng cao
+    document.getElementById('advancedSearchForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const params = new URLSearchParams({
+            name: document.getElementById('advProductName').value,
+            description: document.getElementById('advDescription').value,
+            minPrice: document.getElementById('minPrice').value,
+            maxPrice: document.getElementById('maxPrice').value,
+            categoryId: document.getElementById('categoryId').value,
+            brandId: document.getElementById('brandId').value,
+        });
+
+        fetch(`${baseUrl}/search?${params}`)
+            .then(response => response.json())
+            .then(data => renderResults(data));
+    });
+</script>
+</body>
+</html>
